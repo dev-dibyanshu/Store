@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: store-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Info:/app/Info
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/store.db
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      target: production
+    container_name: store-dashboard
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
